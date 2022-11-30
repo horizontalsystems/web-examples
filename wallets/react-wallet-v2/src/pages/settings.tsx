@@ -1,19 +1,32 @@
 import PageHeader from '@/components/PageHeader'
 import RelayRegionPicker from '@/components/RelayRegionPicker'
 import SettingsStore from '@/store/SettingsStore'
+import { createRef, Fragment } from 'react'
+import { useSnapshot } from 'valtio'
 import { cosmosWallets } from '@/utils/CosmosWalletUtil'
-import { eip155Wallets } from '@/utils/EIP155WalletUtil'
+import { createOrRestoreEIP155Wallet, eip155Wallets } from '@/utils/EIP155WalletUtil'
 import { solanaWallets } from '@/utils/SolanaWalletUtil'
 import { elrondWallets } from '@/utils/ElrondWalletUtil'
-import { Card, Divider, Row, Switch, Text } from '@nextui-org/react'
-import { Fragment } from 'react'
-import { useSnapshot } from 'valtio'
+import { Card, Divider, Row, Switch, Text, Textarea, Button } from '@nextui-org/react'
 import packageJSON from '../../package.json'
 
 export default function SettingsPage() {
-  const { testNets, eip155Address, cosmosAddress, solanaAddress, elrondAddress } = useSnapshot(
+  const { account, testNets, eip155Address, cosmosAddress, solanaAddress, elrondAddress } = useSnapshot(
     SettingsStore.state
   )
+
+  const eip155Mnemonic = eip155Wallets[eip155Address].getMnemonic();
+  const eip155Ref = createRef<HTMLTextAreaElement>()
+  const walletNumber = account+1;
+
+  const onUpdate = () => {
+    const mnemonic = eip155Ref.current?.value?.trim()
+    if (mnemonic) {
+      localStorage.setItem(`EIP155_MNEMONIC_${walletNumber}`, mnemonic)
+      const { eip155Addresses } = createOrRestoreEIP155Wallet()
+      SettingsStore.setEIP155Address(eip155Addresses[0])
+    }
+  }
 
   return (
     <Fragment>
@@ -60,12 +73,15 @@ export default function SettingsPage() {
         Warning: mnemonics and secret keys are provided for development purposes only and should not
         be used elsewhere!
       </Text>
+      <Text css={{ marginBottom: '$5' }}>
+        <Button onClick={onUpdate}>Update</Button>
+      </Text>
 
       <Text h4 css={{ marginTop: '$5', marginBottom: '$5' }}>
         EIP155 Mnemonic
       </Text>
       <Card bordered borderWeight="light" css={{ minHeight: '100px' }}>
-        <Text css={{ fontFamily: '$mono' }}>{eip155Wallets[eip155Address].getMnemonic()}</Text>
+        <Textarea ref={eip155Ref} css={{ fontFamily: '$mono', margin: 0 }} initialValue={eip155Mnemonic} />
       </Card>
 
       <Text h4 css={{ marginTop: '$10', marginBottom: '$5' }}>
