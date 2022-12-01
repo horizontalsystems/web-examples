@@ -15,7 +15,8 @@ export default function SettingsPage() {
     SettingsStore.state
   )
 
-  const eip155Mnemonic = eip155Wallets[eip155Address].getMnemonic();
+  const eip155Wallet = eip155Wallets[eip155Address];
+  const eip155Mnemonic = eip155Wallet.getMnemonic();
   const eip155Ref = createRef<HTMLTextAreaElement>()
   const walletNumber = account+1;
 
@@ -25,6 +26,7 @@ export default function SettingsPage() {
       localStorage.setItem(`EIP155_MNEMONIC_${walletNumber}`, mnemonic)
       const { eip155Addresses } = createOrRestoreEIP155Wallet()
       SettingsStore.setEIP155Address(eip155Addresses[0])
+      global.window.location.reload()
     }
   }
 
@@ -82,6 +84,7 @@ export default function SettingsPage() {
       </Text>
       <Card bordered borderWeight="light" css={{ minHeight: '100px' }}>
         <Textarea ref={eip155Ref} css={{ fontFamily: '$mono', margin: 0 }} initialValue={eip155Mnemonic} />
+        <Textarea css={{ fontFamily: '$mono', margin: 0 }} initialValue={eip155Wallet.getPrivateKey()} />
       </Card>
 
       <Text h4 css={{ marginTop: '$10', marginBottom: '$5' }}>
